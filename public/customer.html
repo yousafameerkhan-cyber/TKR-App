@@ -4,6 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TKR Restaurant - Menu</title>
+  
+  <!-- PWA Manifest & Theme Color -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#d32f2f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="/logo.png">
+
   <script src="/socket.io/socket.io.js"></script>
   <style>
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f6f8; margin: 0; padding: 0; padding-bottom: 70px; }
@@ -370,6 +378,15 @@
   </div>
 
   <script>
+    // Service Worker Registration for PWA Install Prompt
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((reg) => { console.log('Service Worker registered!', reg); })
+          .catch((err) => { console.log('Service Worker registration failed:', err); });
+      });
+    }
+
     const socket = io();
     let currentCategory = 'all';
     let currentOrderFilter = 'all';
