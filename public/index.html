@@ -1,128 +1,129 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TKR Restaurant - Welcome</title>
-  <style>
-    body { 
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-      background: linear-gradient(135deg, #d32f2f, #b71c1c); 
-      margin: 0; 
-      padding: 0; 
-      display: flex; 
-      justify-content: center; 
-      align-items: center; 
-      min-height: 100vh; 
-    }
-    .login-card { 
-      background: white; 
-      padding: 25px 20px; 
-      border-radius: 16px; 
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
-      width: 100%; 
-      max-width: 360px; 
-      box-sizing: border-box; 
-      text-align: center; 
-      margin: 20px 0;
-    }
-    .logo-img {
-      width: 120px;
-      height: 55px;
-      border-radius: 8px;
-      object-fit: cover;
-      margin: 0 auto 10px auto;
-      border: 1px solid #ddd;
-    }
-    .logo { font-size: 18px; font-weight: bold; color: #d32f2f; margin-bottom: 3px; }
-    .subtitle { font-size: 11px; color: #666; margin-bottom: 20px; }
-    .input-group { text-align: left; margin-bottom: 12px; }
-    .input-group label { display: block; font-size: 10px; font-weight: bold; color: #444; margin-bottom: 4px; text-transform: uppercase; }
-    .form-input { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 12px; outline: none; background: #fafafa; }
-    .form-input:focus { border-color: #d32f2f; background: #fff; }
-    .login-btn { background: #d32f2f; color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 10px rgba(211, 47, 47, 0.3); }
-    .login-btn:hover { background: #b71c1c; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TKR Restaurant - Welcome</title>
+<style>
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #d32f2f, #b71c1c);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+.login-card {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    width: 100%;
+    max-width: 380px;
+    box-sizing: border-box;
+    text-align: center;
+    margin: 20px 0;
+}
+.logo-img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin: 0 auto 15px auto;
+    border: 1px solid #ddd;
+    display: block;
+}
+h2 { font-size: 18px; font-weight: bold; color: #d32f2f; margin-bottom: 3px; }
+.subtitle { font-size: 11px; color: #666; margin-bottom: 20px; }
+.input-group { text-align: left; margin-bottom: 12px; }
+.input-group label { display: block; font-size: 10px; font-weight: bold; color: #444; margin-bottom: 4px; text-transform: uppercase; }
+.form-input { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 12px; outline: none; background: #fafafa; }
+.form-input:focus { border-color: #d32f2f; background: #fff; }
+.login-btn { background: #d32f2f; color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 10px rgba(211, 47, 47, 0.3); }
+.login-btn:hover { background: #b71c1c; }
+</style>
 </head>
 <body>
-  <div class="login-card">
-    <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500" class="logo-img" alt="TKR Logo">
-    <div class="logo">TKR Restaurant</div>
+<div class="login-card">
+    <img src="logo.png" alt="TKR Logo" class="logo-img">
+    <h2>TKR Restaurant</h2>
     <div class="subtitle">Please provide your details to sign in</div>
-    
+
     <div class="input-group">
-      <label>Full Name</label>
-      <input type="text" id="loginName" class="form-input" placeholder="Enter your full name" autocomplete="off">
-    </div>
-    
-    <div class="input-group">
-      <label>WhatsApp Number</label>
-      <input type="tel" id="loginPhone" class="form-input" placeholder="03XXXXXXXXX" maxlength="11" autocomplete="off">
+        <label>Full Name</label>
+        <input type="text" id="loginName" class="form-input" placeholder="Enter your full name" autocomplete="off">
     </div>
 
     <div class="input-group">
-      <label>Email Address</label>
-      <input type="email" id="loginEmail" class="form-input" placeholder="Enter your email" autocomplete="off">
+        <label>WhatsApp Number</label>
+        <input type="tel" id="loginPhone" class="form-input" placeholder="03XXXXXXXXX" maxlength="11" autocomplete="off">
     </div>
 
     <div class="input-group">
-      <label>Date of Birth</label>
-      <input type="date" id="loginDob" class="form-input">
+        <label>Email Address</label>
+        <input type="email" id="loginEmail" class="form-input" placeholder="Enter your email" autocomplete="off">
     </div>
-    
-    <button class="login-btn" onclick="handleLogin()">Continue to Menu →</button>
-  </div>
 
-  <script>
-    window.onload = function() {
-      if (localStorage.getItem('tkr_user')) {
+    <div class="input-group">
+        <label>Date of Birth</label>
+        <input type="date" id="loginDob" class="form-input">
+    </div>
+
+    <button class="login-btn" onclick="handleLogin()">Continue to Menu &rarr;</button>
+</div>
+
+<script>
+window.onload = function() {
+    if (localStorage.getItem('tkr_user')) {
         window.location.href = '/customer.html';
-      }
     }
+}
 
-    function handleLogin() {
-      let name = document.getElementById('loginName').value.trim();
-      let phone = document.getElementById('loginPhone').value.trim();
-      let email = document.getElementById('loginEmail').value.trim();
-      let dob = document.getElementById('loginDob').value;
+function handleLogin() {
+    let name = document.getElementById('loginName').value.trim();
+    let phone = document.getElementById('loginPhone').value.trim();
+    let email = document.getElementById('loginEmail').value.trim();
+    let dob = document.getElementById('loginDob').value;
 
-      if (!name || name.length < 3) {
+    if (!name || name.length < 3) {
         alert('Please enter a valid full name.');
         document.getElementById('loginName').focus();
         return;
-      }
+    }
 
-      let phoneRegex = /^03\d{9}$/;
-      if (!phoneRegex.test(phone)) {
+    let phoneRegex = /^03\d{9}$/;
+    if (!phoneRegex.test(phone)) {
         alert('Please enter a valid Pakistani WhatsApp number starting with 03 (11 digits).');
         document.getElementById('loginPhone').focus();
         return;
-      }
+    }
 
-      let emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
+    let emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
         alert('Please enter a valid email address.');
         document.getElementById('loginEmail').focus();
         return;
-      }
+    }
 
-      if (!dob) {
+    if (!dob) {
         alert('Please select your date of birth.');
         document.getElementById('loginDob').focus();
         return;
-      }
+    }
 
-      let user = { 
-        name: name, 
-        whatsapp: phone, 
-        email: email, 
+    let user = {
+        name: name,
+        whatsapp: phone,
+        email: email,
         dob: dob,
         editApproved: { email: false, whatsapp: false }
-      };
-
-      localStorage.setItem('tkr_user', JSON.stringify(user));
-      window.location.href = '/customer.html';
-    }
-  </script>
+    };
+    
+    localStorage.setItem('tkr_user', JSON.stringify(user));
+    window.location.href = '/customer.html';
+}
+</script>
 </body>
 </html>
