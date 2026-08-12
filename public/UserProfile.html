@@ -11,28 +11,33 @@
     .header-btns { display: flex; gap: 8px; }
     .back-btn, .logout-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 12px; cursor: pointer; text-decoration: none; }
     .logout-btn { background: #b71c1c; border: none; }
-    
+
     .container { padding: 15px; max-width: 600px; margin: auto; }
     .profile-card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); text-align: center; }
-    
+
     /* Profile Picture */
     .avatar-container { position: relative; width: 90px; height: 90px; margin: 0 auto 15px auto; }
     .avatar { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 3px solid #d32f2f; background: #ddd; }
     .upload-label { position: absolute; bottom: 0; right: 0; background: #d32f2f; color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; border: 2px solid white; }
-    
+
     .section-title { font-size: 15px; font-weight: bold; margin-bottom: 10px; color: #333; text-align: left; border-bottom: 2px solid #f0f0f0; padding-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
     .info-group { text-align: left; font-size: 13px; margin: 10px 0; color: #555; display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f9f9f9; }
     .info-group b { color: #333; }
-    
+
     .form-input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 13px; outline: none; }
     .form-input:disabled { background: #f0f0f0; color: #777; cursor: not-allowed; }
-    
+
     .action-btn { background: #d32f2f; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: bold; width: 100%; cursor: pointer; font-size: 13px; margin-top: 5px; }
     .secondary-btn { background: #555; margin-top: 5px; }
     .request-btn { background: #ff9800; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; font-weight: bold; }
-    
+
     .history-item { background: #fafafa; border: 1px solid #eee; padding: 10px; border-radius: 8px; margin-bottom: 8px; text-align: left; font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
     .edit-section { display: none; margin-top: 10px; text-align: left; }
+
+    /* Professional Footer Style */
+    .app-footer { text-align: center; padding: 20px 0 10px 0; font-size: 12px; color: #666; border-top: 1px solid #e0e0e0; margin-top: 30px; }
+    .app-footer p { margin: 4px 0; }
+    .app-footer .brand-text { color: #d32f2f; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -48,7 +53,7 @@
   </div>
 
   <div class="container">
-    
+
     <!-- Profile Card & Image -->
     <div class="profile-card">
       <div class="avatar-container">
@@ -66,16 +71,16 @@
         <span>👤 Personal Information</span>
         <button style="background:none; border:none; color:#d32f2f; cursor:pointer; font-weight:bold; font-size:12px;" onclick="toggleEditMode()">Edit Profile</button>
       </div>
-      
+
       <!-- Display Mode -->
       <div id="viewInfoMode">
         <div class="info-group"><span>Full Name:</span> <b id="valName">-</b></div>
         <div class="info-group">
-          <span>Email Address:</span> 
+          <span>Email Address:</span>
           <div><b id="valEmail">-</b> <button class="request-btn" id="reqEmailBtn" onclick="requestChange('email')">Request Change</button></div>
         </div>
         <div class="info-group">
-          <span>WhatsApp Number:</span> 
+          <span>WhatsApp Number:</span>
           <div><b id="valWhatsapp">-</b> <button class="request-btn" id="reqWaBtn" onclick="requestChange('whatsapp')">Request Change</button></div>
         </div>
         <div class="info-group"><span>Date of Birth:</span> <b id="valDob">-</b></div>
@@ -85,16 +90,16 @@
       <div id="editInfoMode" class="edit-section">
         <label style="font-size:11px; color:#666;">Full Name</label>
         <input type="text" id="editName" class="form-input">
-        
+
         <label style="font-size:11px; color:#666;">Email Address <span id="emailLockNotice" style="color:red; font-size:10px;">(Locked)</span></label>
         <input type="text" id="editEmail" class="form-input" disabled>
-        
+
         <label style="font-size:11px; color:#666;">WhatsApp Number <span id="waLockNotice" style="color:red; font-size:10px;">(Locked)</span></label>
         <input type="text" id="editWhatsapp" class="form-input" disabled>
-        
+
         <label style="font-size:11px; color:#666;">Date of Birth</label>
         <input type="date" id="editDob" class="form-input">
-        
+
         <button class="action-btn" onclick="savePersonalProfile()">Update Profile</button>
         <button class="action-btn secondary-btn" onclick="toggleEditMode()">Cancel</button>
       </div>
@@ -117,18 +122,23 @@
       </div>
     </div>
 
+    <!-- Professional Footer -->
+    <div class="app-footer">
+      <p>Developed with ❤️ by <span class="brand-text">Hyfal Technologies</span></p>
+      <p>©️ All Rights Reserved TKR App 2026.</p>
+    </div>
+
   </div>
 
   <script>
     window.onload = function() {
-      // Session Guard: Check if user is logged in
       let user = localStorage.getItem('tkr_user');
       if (!user) {
         alert('Please login first to view your dashboard.');
         window.location.href = '/customer.html';
         return;
       }
-      
+
       loadUserData();
       loadOrderHistory();
     }
@@ -141,22 +151,20 @@
     function loadUserData() {
       let data = getStoredUser();
       if (!data) return;
-      
+
       document.getElementById('profileName').innerText = data.name || 'User';
       document.getElementById('profileEmail').innerText = data.email || 'No email';
-      
+
       document.getElementById('valName').innerText = data.name || '-';
       document.getElementById('valEmail').innerText = data.email || '-';
       document.getElementById('valWhatsapp').innerText = data.whatsapp || '-';
       document.getElementById('valDob').innerText = data.dob || '-';
 
-      // Set edit inputs values
       document.getElementById('editName').value = data.name || '';
       document.getElementById('editEmail').value = data.email || '';
       document.getElementById('editWhatsapp').value = data.whatsapp || '';
       document.getElementById('editDob').value = data.dob || '';
 
-      // Check approval state for editing restricted fields
       if (data.editApproved) {
         if (data.editApproved.email) {
           document.getElementById('editEmail').disabled = false;
@@ -198,12 +206,12 @@
     function requestChange(field) {
       let fieldName = field === 'email' ? 'Email Address' : 'WhatsApp Number';
       alert(`Request sent to Admin to change your ${fieldName}. Approved for testing!`);
-      
+
       let user = getStoredUser();
       if (!user.editApproved) user.editApproved = {};
       user.editApproved[field] = true;
       localStorage.setItem('tkr_user', JSON.stringify(user));
-      
+
       loadUserData();
     }
 
@@ -219,7 +227,7 @@
       }
 
       let user = getStoredUser();
-      
+
       if (user.editApproved && user.editApproved.whatsapp) {
         let waRegex = /^03\d{9}$/;
         if (!waRegex.test(whatsapp)) {
@@ -237,7 +245,7 @@
 
       user.name = name;
       user.dob = dob;
-      
+
       localStorage.setItem('tkr_user', JSON.stringify(user));
 
       loadUserData();
@@ -252,7 +260,7 @@
         reader.onload = function(e) {
           let base64Image = e.target.result;
           document.getElementById('userAvatar').src = base64Image;
-          
+
           let user = getStoredUser();
           if (user) {
             user.avatar = base64Image;
@@ -283,7 +291,7 @@
     function loadOrderHistory() {
       let orders = JSON.parse(localStorage.getItem('tkr_orders') || '[]');
       let container = document.getElementById('orderHistoryList');
-      
+
       if (orders.length === 0) {
         container.innerHTML = `<div class="history-item"><span><b>Sample Order</b><br><small>Table 01 - Rs. 1800</small></span><span style="color: #2e7d32; font-weight: bold;">Completed</span></div>`;
         return;
