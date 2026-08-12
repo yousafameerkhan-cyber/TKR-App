@@ -13,17 +13,42 @@
     .brand-section h2 { margin: 0; font-size: 16px; font-weight: bold; }
     .header-btns { display: flex; gap: 6px; align-items: center; }
     .nav-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 5px 10px; border-radius: 20px; font-weight: bold; font-size: 11px; cursor: pointer; text-decoration: none; }
-    
+
     .container { padding: 12px; max-width: 600px; margin: auto; }
     .search-box { width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 20px; box-sizing: border-box; margin-bottom: 15px; font-size: 13px; outline: none; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-    
+
     /* Horizontal Deals Section */
     .section-heading { font-size: 15px; font-weight: bold; color: #333; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
     .deals-container { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 18px; scrollbar-width: none; }
     .deals-container::-webkit-scrollbar { display: none; }
-    .deal-card { min-width: 240px; background: linear-gradient(135deg, #ff5252, #d32f2f); border-radius: 12px; padding: 12px; color: white; box-shadow: 0 4px 10px rgba(211,47,47,0.3); display: flex; flex-direction: column; justify-content: space-between; }
-    .deal-card.alt { background: linear-gradient(135deg, #ffa726, #f57c00); box-shadow: 0 4px 10px rgba(245,124,0,0.3); }
-    
+
+    /* Neon Shining Flame Animation for Deal Cards */
+    @keyframes neonGlow {
+      0% {
+        box-shadow: 0 0 5px rgba(255, 82, 82, 0.6), 0 0 15px rgba(255, 107, 107, 0.4), 0 4px 10px rgba(211, 47, 47, 0.3);
+        border-color: rgba(255, 255, 255, 0.4);
+      }
+      50% {
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.8), 0 0 25px rgba(255, 82, 82, 0.8), 0 6px 15px rgba(211, 47, 47, 0.5);
+        border-color: rgba(255, 255, 255, 0.9);
+      }
+      100% {
+        box-shadow: 0 0 5px rgba(255, 82, 82, 0.6), 0 0 15px rgba(255, 107, 107, 0.4), 0 4px 10px rgba(211, 47, 47, 0.3);
+        border-color: rgba(255, 255, 255, 0.4);
+      }
+    }
+
+    .deal-card { min-width: 240px; background: linear-gradient(135deg, #ff5252, #d32f2f); border-radius: 12px; padding: 12px; color: white; display: flex; flex-direction: column; justify-content: space-between; border: 1.5px solid rgba(255,255,255,0.4); animation: neonGlow 2s infinite ease-in-out; }
+    .deal-card.alt { background: linear-gradient(135deg, #ffa726, #f57c00); animation: neonGlow 2s infinite ease-in-out; }
+
+    /* Flame Icon Pulsing Animation */
+    @keyframes flamePulse {
+      0% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(255,255,255,0.8)); }
+      50% { transform: scale(1.15); filter: drop-shadow(0 0 8px rgba(255, 235, 59, 1)); }
+      100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(255,255,255,0.8)); }
+    }
+    .flame-icon { display: inline-block; animation: flamePulse 1.2s infinite ease-in-out; }
+
     /* Category Filter Tabs */
     .categories { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; margin-bottom: 15px; scrollbar-width: none; }
     .categories::-webkit-scrollbar { display: none; }
@@ -53,7 +78,7 @@
     .modal-list li { padding: 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
     .modal-list li:last-child { border-bottom: none; }
     .modal-footer { padding: 12px 15px; background: #f1f1f1; display: flex; justify-content: space-between; align-items: center; }
-    
+
     .qty-control { display: flex; align-items: center; gap: 6px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 2px 6px; }
     .qty-btn { background: none; border: none; font-weight: bold; font-size: 14px; cursor: pointer; color: #d32f2f; padding: 0 4px; }
     .qty-btn:active { color: #880e4f; }
@@ -113,9 +138,9 @@
 
   <div class="container">
     <input type="text" class="search-box" id="searchBox" placeholder="Search dishes, deals, drinks..." onkeyup="filterMenu()">
-    
-    <!-- Special Discount Deals -->
-    <div class="section-heading">🔥 Special Discount Deals</div>
+
+    <!-- Special Discount Deals with Neon Flame Animation -->
+    <div class="section-heading"><span class="flame-icon">🔥</span> Special Discount Deals</div>
     <div class="deals-container">
       <div class="deal-card">
         <div>
@@ -127,7 +152,7 @@
             <span style="font-size: 14px; font-weight: bold;">Rs. 2100</span>
             <span style="text-decoration: line-through; font-size: 10px; opacity: 0.7; margin-left: 4px;">Rs. 2420</span>
           </div>
-          <button style="background: white; color: #d32f2f; border: none; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;" onclick="openDealModal('Family Karahi Deal', 2100, 2420, ['1x Chicken Karahi (Full)', '4x Special Roghni Naan', '1x Cold Drink (1.5 Litre)'])">View</button>
+          <button style="background: white; color: #d32f2f; border: none; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);" onclick="openDealModal('Family Karahi Deal', 2100, 2420, ['1x Chicken Karahi (Full)', '4x Special Roghni Naan', '1x Cold Drink (1.5 Litre)'])">View</button>
         </div>
       </div>
 
@@ -141,11 +166,11 @@
             <span style="font-size: 14px; font-weight: bold;">Rs. 900</span>
             <span style="text-decoration: line-through; font-size: 10px; opacity: 0.7; margin-left: 4px;">Rs. 1100</span>
           </div>
-          <button style="background: white; color: #f57c00; border: none; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;" onclick="openDealModal('Biryani Special Deal', 900, 1100, ['2x Chicken Biryani', '1x Fresh Raita Bowl', '1x Cold Drink (500ml)'])">View</button>
+          <button style="background: white; color: #f57c00; border: none; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);" onclick="openDealModal('Biryani Special Deal', 900, 1100, ['2x Chicken Biryani', '1x Fresh Raita Bowl', '1x Cold Drink (500ml)'])">View</button>
         </div>
       </div>
     </div>
-    
+
     <!-- Categories with Emojis -->
     <div class="section-heading">Categories</div>
     <div class="categories">
@@ -156,10 +181,10 @@
       <div class="cat-chip" onclick="filterCategory('beverage', this)">🥤 Beverages</div>
       <div class="cat-chip" onclick="filterCategory('dessert', this)">🍨 Ice Cream</div>
     </div>
-    
+
     <!-- Menu Grid -->
     <div class="menu-grid" id="menuList">
-      
+
       <div class="menu-card" data-category="karahi" data-name="chicken karahi">
         <img src="https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=500" class="menu-img" alt="Karahi">
         <div class="menu-content">
@@ -253,7 +278,7 @@
       <div class="modal-body">
         <div style="font-weight: bold; margin-bottom: 5px; color: #333;">Review your items:</div>
         <ul class="modal-list" id="cartItemsList"></ul>
-        
+
         <!-- Prominent Bold Order Type & Delivery / Payment Block -->
         <div class="order-type-box">
           <div class="form-group">
@@ -287,7 +312,7 @@
           <div class="form-group" id="onlineInstructionsContainer" style="display:none; margin-top: 8px; background: #fff; padding: 8px; border-radius: 6px; border: 1.5px dashed #d32f2f;">
             <div style="font-size: 11px; color: #b71c1c; font-weight: bold;">ℹ️ Online Payment Instructions:</div>
             <div style="font-size: 10px; color: #444; margin-top: 2px;">Please transfer the total amount via Bank Transfer / Raast to <b>HBL: PK00HBL0000000000000000</b>.</div>
-            
+
             <div style="margin-top: 8px;">
               <label style="font-size: 10px; color: #333; margin-bottom: 2px; display: block;">📎 ATTACH PAYMENT RECEIPT / SCREENSHOT:</label>
               <input type="file" id="paymentReceiptInput" accept="image/*" class="form-control" style="font-size: 10px; padding: 4px; background: #fafafa;">
@@ -361,7 +386,6 @@
       updateCartUI();
     }
 
-    // Listen for real-time updates from server
     socket.on('refreshOrders', (updatedOrder) => {
       let ordersModal = document.getElementById('ordersModal');
       if (ordersModal && ordersModal.style.display === 'flex') {
@@ -384,7 +408,7 @@
       document.getElementById('modalDealTitle').innerText = name;
       document.getElementById('modalDealPrice').innerText = `Rs. ${price}`;
       document.getElementById('modalOriginalPrice').innerText = `Rs. ${origPrice}`;
-      
+
       let listEl = document.getElementById('modalDealItems');
       listEl.innerHTML = '';
       items.forEach(item => {
@@ -409,7 +433,7 @@
       currentCategory = category;
       document.querySelectorAll('.cat-chip').forEach(chip => chip.classList.remove('active'));
       element.classList.add('active');
-      
+
       let query = document.getElementById('searchBox').value.toLowerCase();
       applyFilters(query, currentCategory);
     }
@@ -424,7 +448,7 @@
       cards.forEach(card => {
         let name = card.getAttribute('data-name');
         let cat = card.getAttribute('data-category');
-        
+
         let matchesQuery = name.includes(query);
         let matchesCategory = (category === 'all' || cat === category);
 
@@ -552,7 +576,7 @@
       });
 
       document.getElementById('cartModalTotal').innerText = `Rs. ${total}`;
-      
+
       let savedTable = localStorage.getItem('tkr_table') || 'Table 01';
       document.getElementById('tableNumberInput').value = savedTable;
 
@@ -624,7 +648,7 @@
       }
 
       let total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      
+
       let orderPayload = {
         orderType: orderType,
         locationInfo: orderLocationInfo,
@@ -749,7 +773,7 @@
         let itemsText = order.items.map(i => `${i.name} (x${i.quantity})`).join(', ');
         let typeLabel = order.orderType ? `[${order.orderType}]` : '[Dine-in]';
         let rawInfo = order.locationInfo || '';
-        
+
         let displayInfoHtml = rawInfo;
         if (rawInfo.includes('https://')) {
           let parts = rawInfo.split('https://');
@@ -804,7 +828,7 @@
           <div style="font-size:11px; color:#555; margin-top:4px; word-break: break-all;"><b>Info:</b> ${displayInfoHtml}</div>
           <div style="font-size:10px; color:#777; margin-bottom:4px;">${order.date}</div>
           <div style="font-size:11px; color:#444; margin-bottom:6px;"><b>Items:</b> ${itemsText}</div>
-          
+
           ${order.receipt ? `
             <div style="margin-bottom: 6px;">
               <button style="background: #1976d2; color: white; border: none; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer;" onclick="viewReceipt('${order.receipt}')">📎 View Uploaded Receipt</button>
