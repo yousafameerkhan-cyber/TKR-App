@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TKR Restaurant - Menu</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f6f8; margin: 0; padding: 0; padding-bottom: 70px; }
+    .top-header { background: #d32f2f; color: white; padding: 12px 15px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .brand-section { display: flex; align-items: center; gap: 8px; }
+    .brand-section img { width: 32px; height: 32px; border-radius: 6px; object-fit: cover; background: white; border: 1px solid #fff; }
+    .brand-section h2 { margin: 0; font-size: 16px; font-weight: bold; }
+    .header-btns { display: flex; gap: 6px; align-items: center; }
+    .nav-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 5px 10px; border-radius: 20px; font-weight: bold; font-size: 11px; cursor: pointer; text-decoration: none; }
+    
+    .container { padding: 12px; max-width: 600px; margin: auto; }
+    .search-box { width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 20px; box-sizing: border-box; margin-bottom: 15px; font-size: 13px; outline: none; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    
+    /* Horizontal Deals Section */
+    .section-heading { font-size: 15px; font-weight: bold; color: #333; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
+    .deals-container { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 18px; scrollbar-width: none; }
+    .deals-container::-webkit-scrollbar { display: none; }
+    .deal-card { min-width: 240px; background: linear-gradient(135deg, #ff5252, #d32f2f); border-radius: 12px; padding: 12px; color: white; box-shadow: 0 4px 10px rgba(211,47,47,0.3); display: flex; flex-direction: column; justify-content: space-between; }
+    .deal-card.alt { background: linear-gradient(135deg, #ffa726, #f57c00); box-shadow: 0 4px 10px rgba(245,124,0,0.3); }
+    
+    /* Category Filter Tabs */
+    .categories { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; margin-bottom: 15px; scrollbar-width: none; }
+    .categories::-webkit-scrollbar { display: none; }
+    .cat-chip { background: white; border: 1px solid #ddd; padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: bold; color: #555; white-space: nowrap; cursor: pointer; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .cat-chip.active { background: #d32f2f; color: white; border-color: #d32f2f; }
+
+    /* Menu Grid with Smooth Fade-in */
+    .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .menu-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.06); display: flex; flex-direction: column; justify-content: space-between; animation: cardFadeIn 0.3s ease-in-out; }
+    @keyframes cardFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    .menu-img { width: 100%; height: 110px; object-fit: cover; }
+    .menu-content { padding: 10px; display: flex; flex-direction: column; flex-grow: 1; justify-content: space-between; }
+    .item-title { font-size: 13px; font-weight: bold; color: #222; margin: 0 0 4px 0; line-height: 1.2; }
+    .item-desc { font-size: 10px; color: #666; margin: 0 0 8px 0; line-height: 1.3; }
+    .item-footer { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
+    .item-price { color: #d32f2f; font-size: 13px; font-weight: bold; }
+    .add-btn { background: #d32f2f; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; }
+    .add-btn:active { background: #b71c1c; }
+
+    /* Modal Styling */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 200; padding: 15px; box-sizing: border-box; }
+    .modal-card { background: white; width: 100%; max-width: 360px; border-radius: 14px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.3); animation: fadeIn 0.2s ease-in-out; max-height: 85vh; display: flex; flex-direction: column; }
+    .modal-header { background: #d32f2f; color: white; padding: 12px 15px; font-size: 15px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+    .modal-body { padding: 15px; font-size: 12px; color: #444; overflow-y: auto; flex-grow: 1; }
+    .modal-list { background: #f9f9f9; border: 1px solid #eee; border-radius: 8px; padding: 8px; margin: 10px 0; list-style: none; padding-left: 0; }
+    .modal-list li { padding: 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .modal-list li:last-child { border-bottom: none; }
+    .modal-footer { padding: 12px 15px; background: #f1f1f1; display: flex; justify-content: space-between; align-items: center; }
+    
+    .qty-control { display: flex; align-items: center; gap: 6px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 2px 6px; }
+    .qty-btn { background: none; border: none; font-weight: bold; font-size: 14px; cursor: pointer; color: #d32f2f; padding: 0 4px; }
+    .qty-btn:active { color: #880e4f; }
+
+    /* Prominent Bold Order Block Box */
+    .order-type-box { background: #fff5f5; border: 2px solid #d32f2f; border-radius: 10px; padding: 12px; margin: 12px 0; }
+    .form-group { margin-bottom: 10px; }
+    .form-group:last-child { margin-bottom: 0; }
+    .form-group label { display: block; font-weight: bold; font-size: 12px; margin-bottom: 4px; color: #b71c1c; }
+    .form-control { width: 100%; padding: 8px 10px; border: 1.5px solid #d32f2f; border-radius: 6px; font-size: 12px; font-weight: bold; box-sizing: border-box; background: white; color: #222; outline: none; }
+    .loc-btn { background: #1976d2; color: white; border: none; padding: 7px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; margin-top: 6px; display: inline-flex; align-items: center; gap: 4px; }
+
+    /* Custom Toast Notification */
+    #toastContainer { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; width: 90%; max-width: 320px; pointer-events: none; }
+    .toast-msg { background: #323232; color: white; padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.2); animation: slideDown 0.3s ease, fadeOut 0.3s ease 2.2s forwards; text-align: center; }
+    .toast-msg.success { background: #2e7d32; }
+    .toast-msg.error { background: #d32f2f; }
+
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); } }
+
+    /* Order Filtering Tabs */
+    .order-tabs { display: flex; gap: 6px; margin-bottom: 12px; background: #eee; padding: 3px; border-radius: 8px; }
+    .order-tab { flex: 1; text-align: center; padding: 6px; font-size: 11px; font-weight: bold; color: #555; cursor: pointer; border-radius: 6px; transition: all 0.2s; }
+    .order-tab.active { background: white; color: #d32f2f; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+    /* Order Progress Steps */
+    .progress-steps { display: flex; justify-content: space-between; margin: 8px 0; position: relative; font-size: 9px; font-weight: bold; color: #777; }
+    .progress-step { text-align: center; z-index: 2; flex: 1; }
+    .progress-dot { width: 16px; height: 16px; border-radius: 50%; background: #ddd; margin: 0 auto 2px auto; display: flex; align-items: center; justify-content: center; font-size: 8px; color: white; }
+    .progress-step.active .progress-dot { background: #2e7d32; }
+    .progress-step.completed .progress-dot { background: #1976d2; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+    /* Bottom Bar */
+    .bottom-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: white; padding: 10px 15px; box-shadow: 0 -2px 8px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; z-index: 100; }
+    .waiter-btn { background: #ffb300; color: #111; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; }
+    .cart-btn { background: #2e7d32; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+    .cart-badge { background: #ff5252; color: white; border-radius: 10px; padding: 1px 6px; font-size: 10px; font-weight: bold; display: inline-block; }
+  </style>
+</head>
+<body>
+
+  <div id="toastContainer"></div>
+
+  <div class="top-header">
+    <div class="brand-section">
+      <img src="/logo.png" alt="Logo">
+      <h2 id="welcomeText">TKR Restaurant</h2>
+    </div>
+    <div class="header-btns">
+      <button class="nav-btn" onclick="openOrdersModal()">📦 My Orders</button>
+      <a href="/UserProfile.html" class="nav-btn">👤 Profile</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <input type="text" class="search-box" id="searchBox" placeholder="Search dishes, deals, drinks..." onkeyup="filterMenu()">
+    
+    <!-- Special Discount Deals -->
+    <div class="section-heading">🔥 Special Discount Deals</div>
+    <div class="deals-container">
+      <div class="deal-card">
+        <div>
+          <div style="font-size: 13px; font-weight: bold; margin-bottom: 3px;">🎁 Family Karahi Deal</div>
+          <div style="font-size: 10px; opacity: 0.9;">Chicken Karahi (Full) + 4 Naan + 1.5L Drink</div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+          <div>
+            <span style="font-size: 14px; font-weight: bold;">Rs. 2100</span>
+            <span style="text-decoration: line-through; font-size: 10px; opacity: 0.7; margin-left: 4px;">Rs. 2420</span>
+          </div>
+          <button style="background: white; color: #d32f2f; border: none; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;" onclick="openDealModal('Family Karahi Deal', 2100, 2420, ['1x Chicken Karahi (Full)', '4x Special Roghni Naan', '1x Cold Drink (1.5 Litre)'])">View</button>
+        </div>
+      </div>
+
+      <div class="deal-card alt">
+        <div>
+          <div style="font-size: 13px; font-weight: bold; margin-bottom: 3px;">🎁 Biryani Special Deal</div>
+          <div style="font-size: 10px; opacity: 0.9;">2 Chicken Biryani + Raita + Cold Drink</div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+          <div>
+            <span style="font-size: 14px; font-weight: bold;">Rs. 900</span>
+            <span style="text-decoration: line-through; font-size: 10px; opacity: 0.7; margin-left: 4px;">Rs. 1100</span>
+          </div>
+          <button style="background: white; color: #f57c00; border: none; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;" onclick="openDealModal('Biryani Special Deal', 900, 1100, ['2x Chicken Biryani', '1x Fresh Raita Bowl', '1x Cold Drink (500ml)'])">View</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Categories with Emojis -->
+    <div class="section-heading">Categories</div>
+    <div class="categories">
+      <div class="cat-chip active" onclick="filterCategory('all', this)">🍽️ All Items</div>
+      <div class="cat-chip" onclick="filterCategory('karahi', this)">🔥 Karahi</div>
+      <div class="cat-chip" onclick="filterCategory('bbq', this)">🍢 BBQ</div>
+      <div class="cat-chip" onclick="filterCategory('rice', this)">🍛 Rice, Pulao & Biryani</div>
+      <div class="cat-chip" onclick="filterCategory('beverage', this)">🥤 Beverages</div>
+      <div class="cat-chip" onclick="filterCategory('dessert', this)">🍨 Ice Cream</div>
+    </div>
+    
+    <!-- Menu Grid -->
+    <div class="menu-grid" id="menuList">
+      
+      <div class="menu-card" data-category="karahi" data-name="chicken karahi">
+        <img src="https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=500" class="menu-img" alt="Karahi">
+        <div class="menu-content">
+          <div>
+            <div class="item-title">Chicken Karahi (Full)</div>
+            <div class="item-desc">Freshly prepared traditional chicken karahi.</div>
+          </div>
+          <div class="item-footer">
+            <span class="item-price">Rs. 1800</span>
+            <button class="add-btn" onclick="addToCart('Chicken Karahi (Full)', 1800)">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="menu-card" data-category="karahi" data-name="mutton karahi">
+        <img src="https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?w=500" class="menu-img" alt="Mutton Karahi">
+        <div class="menu-content">
+          <div>
+            <div class="item-title">Mutton Karahi (Full)</div>
+            <div class="item-desc">Tender mutton cooked in desi ghee & spices.</div>
+          </div>
+          <div class="item-footer">
+            <span class="item-price">Rs. 2800</span>
+            <button class="add-btn" onclick="addToCart('Mutton Karahi (Full)', 2800)">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="menu-card" data-category="rice" data-name="chicken biryani">
+        <img src="https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=500" class="menu-img" alt="Biryani">
+        <div class="menu-content">
+          <div>
+            <div class="item-title">Chicken Biryani</div>
+            <div class="item-desc">Spicy & aromatic traditional Hyderabadi biryani.</div>
+          </div>
+          <div class="item-footer">
+            <span class="item-price">Rs. 450</span>
+            <button class="add-btn" onclick="addToCart('Chicken Biryani', 450)">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="menu-card" data-category="beverage" data-name="cold drink 1.5l">
+        <img src="https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500" class="menu-img" alt="Drink">
+        <div class="menu-content">
+          <div>
+            <div class="item-title">Cold Drink (1.5L)</div>
+            <div class="item-desc">Chilled refreshing soft drink bottle.</div>
+          </div>
+          <div class="item-footer">
+            <span class="item-price">Rs. 180</span>
+            <button class="add-btn" onclick="addToCart('Cold Drink (1.5L)', 180)">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Deal Details Modal -->
+  <div class="modal-overlay" id="dealModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span id="modalDealTitle">Deal Details</span>
+        <span style="cursor:pointer; font-size: 16px;" onclick="closeDealModal()">✕</span>
+      </div>
+      <div class="modal-body">
+        <div style="font-weight: bold; margin-bottom: 5px; color: #333;">Included Items in this Deal:</div>
+        <ul class="modal-list" id="modalDealItems"></ul>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+          <div>
+            <span style="font-size: 11px; color: #777; text-decoration: line-through;" id="modalOriginalPrice"></span>
+            <div style="font-size: 16px; font-weight: bold; color: #d32f2f;" id="modalDealPrice"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button style="background: #ccc; border:none; padding: 8px 14px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;" onclick="closeDealModal()">Cancel</button>
+        <button style="background: #2e7d32; color: white; border:none; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer;" id="modalAddBtn">Add Deal to Cart</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cart Review Modal -->
+  <div class="modal-overlay" id="cartModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span>🛒 Your Shopping Cart</span>
+        <span style="cursor:pointer; font-size: 16px;" onclick="closeCartModal()">✕</span>
+      </div>
+      <div class="modal-body">
+        <div style="font-weight: bold; margin-bottom: 5px; color: #333;">Review your items:</div>
+        <ul class="modal-list" id="cartItemsList"></ul>
+        
+        <!-- Prominent Bold Order Type & Delivery / Payment Block -->
+        <div class="order-type-box">
+          <div class="form-group">
+            <label>📌 SELECT ORDER TYPE:</label>
+            <select id="orderTypeSelect" class="form-control" onchange="toggleOrderFields()">
+              <option value="Dine-in">Dine-in</option>
+              <option value="Take Away">Take Away</option>
+              <option value="Home Delivery">Home Delivery</option>
+            </select>
+          </div>
+
+          <div class="form-group" id="tableFieldContainer" style="margin-top: 10px;">
+            <label>📌 TABLE NUMBER:</label>
+            <input type="text" id="tableNumberInput" class="form-control" placeholder="e.g. Table 01">
+          </div>
+
+          <div class="form-group" id="deliveryAddressContainer" style="display:none; margin-top: 10px;">
+            <label>📌 DELIVERY ADDRESS / GOOGLE MAPS LINK:</label>
+            <input type="text" id="deliveryAddressInput" class="form-control" placeholder="Enter address or paste Google Maps Link">
+            <button type="button" class="loc-btn" onclick="fetchCurrentLocation()">📍 Get Current Location / Share Link</button>
+          </div>
+
+          <div class="form-group" id="paymentMethodContainer" style="display:none; margin-top: 10px;">
+            <label>💳 PAYMENT METHOD:</label>
+            <select id="paymentMethodSelect" class="form-control" onchange="togglePaymentFields()">
+              <option value="Cash on Delivery">Cash on Delivery (COD)</option>
+              <option value="Online Payment">Online Payment</option>
+            </select>
+          </div>
+
+          <div class="form-group" id="onlineInstructionsContainer" style="display:none; margin-top: 8px; background: #fff; padding: 8px; border-radius: 6px; border: 1.5px dashed #d32f2f;">
+            <div style="font-size: 11px; color: #b71c1c; font-weight: bold;">ℹ️ Online Payment Instructions:</div>
+            <div style="font-size: 10px; color: #444; margin-top: 2px;">Please transfer the total amount via Bank Transfer / Raast to <b>HBL: PK00HBL0000000000000000</b>.</div>
+            
+            <div style="margin-top: 8px;">
+              <label style="font-size: 10px; color: #333; margin-bottom: 2px; display: block;">📎 ATTACH PAYMENT RECEIPT / SCREENSHOT:</label>
+              <input type="file" id="paymentReceiptInput" accept="image/*" class="form-control" style="font-size: 10px; padding: 4px; background: #fafafa;">
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 8px; border-top: 1px solid #ddd;">
+          <span style="font-weight: bold; font-size: 13px;">Total Amount:</span>
+          <span style="font-size: 16px; font-weight: bold; color: #d32f2f;" id="cartModalTotal">Rs. 0</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button style="background: #ccc; border:none; padding: 8px 14px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;" onclick="closeCartModal()">Close</button>
+        <button style="background: #2e7d32; color: white; border:none; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer;" onclick="confirmOrder()">Confirm Order →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Order History Modal -->
+  <div class="modal-overlay" id="ordersModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span>📦 My Order History</span>
+        <span style="cursor:pointer; font-size: 16px;" onclick="closeOrdersModal()">✕</span>
+      </div>
+      <div class="modal-body" id="ordersModalBody">
+        <!-- History items will load here -->
+      </div>
+      <div class="modal-footer">
+        <button style="background: #d32f2f; color: white; border:none; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; width: 100%;" onclick="closeOrdersModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Receipt Viewer Modal -->
+  <div class="modal-overlay" id="receiptModal" onclick="closeReceiptModal()">
+    <div class="modal-card" style="max-width: 300px; text-align: center;" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span>📎 Payment Receipt</span>
+        <span style="cursor:pointer; font-size: 16px;" onclick="closeReceiptModal()">✕</span>
+      </div>
+      <div class="modal-body" style="padding: 10px;">
+        <img id="receiptModalImg" src="" alt="Receipt" style="width: 100%; border-radius: 6px; object-fit: contain; max-height: 350px;">
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    <span id="cartSummary" style="font-size: 12px; font-weight: bold; color: #333;">0 items | Rs. 0</span>
+    <div>
+      <button class="waiter-btn" onclick="callWaiter()">🔔 Waiter</button>
+      <button class="cart-btn" onclick="openCart()">🛒 Cart <span class="cart-badge" id="cartBadgeCount">0</span></button>
+    </div>
+  </div>
+
+  <script>
+    const socket = io();
+    let currentCategory = 'all';
+    let currentOrderFilter = 'all';
+    let activeDealData = null;
+
+    window.onload = function() {
+      let user = localStorage.getItem('tkr_user');
+      if (!user) {
+        window.location.href = '/index.html';
+        return;
+      }
+      let data = JSON.parse(user);
+      document.getElementById('welcomeText').innerText = `Hi, ${data.name.split(' ')[0]}`;
+      updateCartUI();
+    }
+
+    // Listen for real-time updates from server
+    socket.on('refreshOrders', (updatedOrder) => {
+      let ordersModal = document.getElementById('ordersModal');
+      if (ordersModal && ordersModal.style.display === 'flex') {
+        renderOrdersList();
+      }
+      showToast("Order status updated in real-time!", "success");
+    });
+
+    function showToast(message, type = 'success') {
+      let container = document.getElementById('toastContainer');
+      let toast = document.createElement('div');
+      toast.className = `toast-msg ${type}`;
+      toast.innerText = message;
+      container.appendChild(toast);
+      setTimeout(() => { toast.remove(); }, 2500);
+    }
+
+    function openDealModal(name, price, origPrice, items) {
+      activeDealData = { name: name, price: price };
+      document.getElementById('modalDealTitle').innerText = name;
+      document.getElementById('modalDealPrice').innerText = `Rs. ${price}`;
+      document.getElementById('modalOriginalPrice').innerText = `Rs. ${origPrice}`;
+      
+      let listEl = document.getElementById('modalDealItems');
+      listEl.innerHTML = '';
+      items.forEach(item => {
+        let li = document.createElement('li');
+        li.innerHTML = `✅ ${item}`;
+        listEl.appendChild(li);
+      });
+
+      document.getElementById('modalAddBtn').onclick = function() {
+        addToCart(activeDealData.name, activeDealData.price);
+        closeDealModal();
+      };
+
+      document.getElementById('dealModal').style.display = 'flex';
+    }
+
+    function closeDealModal() {
+      document.getElementById('dealModal').style.display = 'none';
+    }
+
+    function filterCategory(category, element) {
+      currentCategory = category;
+      document.querySelectorAll('.cat-chip').forEach(chip => chip.classList.remove('active'));
+      element.classList.add('active');
+      
+      let query = document.getElementById('searchBox').value.toLowerCase();
+      applyFilters(query, currentCategory);
+    }
+
+    function filterMenu() {
+      let query = document.getElementById('searchBox').value.toLowerCase();
+      applyFilters(query, currentCategory);
+    }
+
+    function applyFilters(query, category) {
+      let cards = document.querySelectorAll('.menu-card');
+      cards.forEach(card => {
+        let name = card.getAttribute('data-name');
+        let cat = card.getAttribute('data-category');
+        
+        let matchesQuery = name.includes(query);
+        let matchesCategory = (category === 'all' || cat === category);
+
+        if (matchesQuery && matchesCategory) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    function addToCart(itemName, price) {
+      let cart = JSON.parse(localStorage.getItem('tkr_cart') || '[]');
+      let existing = cart.find(item => item.name === itemName);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        cart.push({ name: itemName, price: price, quantity: 1 });
+      }
+      localStorage.setItem('tkr_cart', JSON.stringify(cart));
+      updateCartUI();
+      showToast(`${itemName} added to cart!`, 'success');
+    }
+
+    function updateCartUI() {
+      let cart = JSON.parse(localStorage.getItem('tkr_cart') || '[]');
+      let totalQty = cart.reduce((sum, item) => sum + item.quantity, 0);
+      let total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      document.getElementById('cartSummary').innerText = `${totalQty} items | Rs. ${total}`;
+      document.getElementById('cartBadgeCount').innerText = totalQty;
+    }
+
+    function callWaiter() {
+      let table = localStorage.getItem('tkr_table') || prompt("Please select your Table number (e.g. Table 01):", "Table 01");
+      if (!table) {
+        showToast("Table selection is mandatory!", "error");
+        return;
+      }
+      localStorage.setItem('tkr_table', table);
+      socket.emit('callWaiter', { table: table });
+      showToast(`Waiter called for ${table}!`, 'success');
+    }
+
+    function toggleOrderFields() {
+      let type = document.getElementById('orderTypeSelect').value;
+      let tableContainer = document.getElementById('tableFieldContainer');
+      let addressContainer = document.getElementById('deliveryAddressContainer');
+      let paymentContainer = document.getElementById('paymentMethodContainer');
+      let onlineInstContainer = document.getElementById('onlineInstructionsContainer');
+
+      if (type === 'Dine-in') {
+        tableContainer.style.display = 'block';
+        addressContainer.style.display = 'none';
+        paymentContainer.style.display = 'none';
+        onlineInstContainer.style.display = 'none';
+      } else if (type === 'Take Away') {
+        tableContainer.style.display = 'none';
+        addressContainer.style.display = 'none';
+        paymentContainer.style.display = 'none';
+        onlineInstContainer.style.display = 'none';
+      } else if (type === 'Home Delivery') {
+        tableContainer.style.display = 'none';
+        addressContainer.style.display = 'block';
+        paymentContainer.style.display = 'block';
+        togglePaymentFields();
+      }
+    }
+
+    function togglePaymentFields() {
+      let paymentType = document.getElementById('paymentMethodSelect').value;
+      let onlineInstContainer = document.getElementById('onlineInstructionsContainer');
+      if (paymentType === 'Online Payment') {
+        onlineInstContainer.style.display = 'block';
+      } else {
+        onlineInstContainer.style.display = 'none';
+      }
+    }
+
+    function fetchCurrentLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          function(position) {
+            let lat = position.coords.latitude;
+            let lon = position.coords.longitude;
+            let mapsLink = `https://www.google.com/maps?q=${lat},${lon}`;
+            document.getElementById('deliveryAddressInput').value = mapsLink;
+            showToast("Current location fetched!", "success");
+          },
+          function(error) {
+            showToast("Unable to retrieve location.", "error");
+          }
+        );
+      } else {
+        showToast("Geolocation not supported.", "error");
+      }
+    }
+
+    function openCart() {
+      let cart = JSON.parse(localStorage.getItem('tkr_cart') || '[]');
+      if (cart.length === 0) {
+        showToast('Your cart is empty!', 'error');
+        return;
+      }
+
+      let listEl = document.getElementById('cartItemsList');
+      listEl.innerHTML = '';
+      let total = 0;
+
+      cart.forEach((item, index) => {
+        let itemTotal = item.price * item.quantity;
+        total += itemTotal;
+        let li = document.createElement('li');
+        li.innerHTML = `
+          <div>
+            <div style="font-weight:bold; font-size:12px;">${item.name}</div>
+            <div style="color:#777; font-size:11px;">Rs. ${item.price} x ${item.quantity} = <b>Rs. ${itemTotal}</b></div>
+          </div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty(${index}, -1)">-</button>
+            <span style="font-weight:bold; font-size:12px; min-width:15px; text-align:center;">${item.quantity}</span>
+            <button class="qty-btn" onclick="changeQty(${index}, 1)">+</button>
+          </div>
+        `;
+        listEl.appendChild(li);
+      });
+
+      document.getElementById('cartModalTotal').innerText = `Rs. ${total}`;
+      
+      let savedTable = localStorage.getItem('tkr_table') || 'Table 01';
+      document.getElementById('tableNumberInput').value = savedTable;
+
+      document.getElementById('cartModal').style.display = 'flex';
+      toggleOrderFields();
+    }
+
+    function closeCartModal() {
+      document.getElementById('cartModal').style.display = 'none';
+    }
+
+    function changeQty(index, change) {
+      let cart = JSON.parse(localStorage.getItem('tkr_cart') || '[]');
+      cart[index].quantity += change;
+      if (cart[index].quantity <= 0) {
+        cart.splice(index, 1);
+      }
+      localStorage.setItem('tkr_cart', JSON.stringify(cart));
+      updateCartUI();
+      if (cart.length === 0) {
+        closeCartModal();
+        showToast('Your cart is empty!', 'error');
+      } else {
+        openCart();
+      }
+    }
+
+    async function confirmOrder() {
+      let cart = JSON.parse(localStorage.getItem('tkr_cart') || '[]');
+      if (cart.length === 0) {
+        showToast('Your cart is empty!', 'error');
+        return;
+      }
+
+      let orderType = document.getElementById('orderTypeSelect').value;
+      let orderLocationInfo = '';
+      let isOnlinePaymentDone = false;
+      let receiptFileName = '';
+
+      if (orderType === 'Dine-in') {
+        let table = document.getElementById('tableNumberInput').value.trim();
+        if (!table) {
+          showToast("Table number is mandatory!", "error");
+          return;
+        }
+        localStorage.setItem('tkr_table', table);
+        orderLocationInfo = table;
+      } else if (orderType === 'Take Away') {
+        orderLocationInfo = 'Take Away (Counter)';
+      } else if (orderType === 'Home Delivery') {
+        let address = document.getElementById('deliveryAddressInput').value.trim();
+        if (!address) {
+          showToast("Delivery address is mandatory!", "error");
+          return;
+        }
+        let paymentMethod = document.getElementById('paymentMethodSelect').value;
+        if (paymentMethod === 'Online Payment') {
+          let receiptFile = document.getElementById('paymentReceiptInput').files[0];
+          if (!receiptFile) {
+            showToast("Please attach your payment receipt!", "error");
+            return;
+          }
+          isOnlinePaymentDone = true;
+          receiptFileName = receiptFile.name;
+          orderLocationInfo = `Delivery / Map: ${address} | Payment: Online`;
+        } else {
+          orderLocationInfo = `Delivery / Map: ${address} | Payment: ${paymentMethod}`;
+        }
+      }
+
+      let total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      
+      let orderPayload = {
+        orderType: orderType,
+        locationInfo: orderLocationInfo,
+        items: cart,
+        total: total,
+        onlinePaymentDone: isOnlinePaymentDone,
+        receipt: receiptFileName ? 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=500' : ''
+      };
+
+      try {
+        let response = await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(orderPayload)
+        });
+        let result = await response.json();
+
+        if (result.success) {
+          let orders = JSON.parse(localStorage.getItem('tkr_orders') || '[]');
+          orders.unshift(result.order);
+          localStorage.setItem('tkr_orders', JSON.stringify(orders));
+
+          showToast(`Order Placed Successfully!`, 'success');
+          localStorage.removeItem('tkr_cart');
+          closeCartModal();
+          updateCartUI();
+        } else {
+          showToast('Failed to place order', 'error');
+        }
+      } catch (err) {
+        showToast('Server connection error', 'error');
+      }
+    }
+
+    async function cancelOrder(orderId) {
+      if (confirm(`Are you sure you want to cancel order ${orderId}?`)) {
+        try {
+          let response = await fetch(`/api/orders/${orderId}/status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'Cancelled' })
+          });
+          let result = await response.json();
+          if (result.success) {
+            openOrdersModal();
+            showToast(`Order ${orderId} cancelled.`, 'error');
+          }
+        } catch (err) {
+          showToast('Error updating order', 'error');
+        }
+      }
+    }
+
+    function reorder(orderId) {
+      let orders = JSON.parse(localStorage.getItem('tkr_orders') || '[]');
+      let order = orders.find(o => o.id === orderId);
+      if (order && order.items) {
+        localStorage.setItem('tkr_cart', JSON.stringify(order.items));
+        updateCartUI();
+        showToast("Items added to cart from past order!", "success");
+        openCart();
+      }
+    }
+
+    function viewReceipt(imgUrl) {
+      document.getElementById('receiptModalImg').src = imgUrl;
+      document.getElementById('receiptModal').style.display = 'flex';
+    }
+
+    function closeReceiptModal() {
+      document.getElementById('receiptModal').style.display = 'none';
+    }
+
+    function setOrderFilter(filter, el) {
+      currentOrderFilter = filter;
+      document.querySelectorAll('.order-tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      renderOrdersList();
+    }
+
+    async function openOrdersModal() {
+      currentOrderFilter = 'all';
+      await renderOrdersList();
+      document.getElementById('ordersModal').style.display = 'flex';
+    }
+
+    async function renderOrdersList() {
+      let orders = [];
+      try {
+        let response = await fetch('/api/orders');
+        orders = await response.json();
+      } catch (e) {
+        orders = JSON.parse(localStorage.getItem('tkr_orders') || '[]');
+      }
+
+      let bodyEl = document.getElementById('ordersModalBody');
+      bodyEl.innerHTML = '';
+
+      let tabsHtml = `
+        <div class="order-tabs">
+          <div class="order-tab ${currentOrderFilter === 'all' ? 'active' : ''}" onclick="setOrderFilter('all', this)">All Orders</div>
+          <div class="order-tab ${currentOrderFilter === 'active' ? 'active' : ''}" onclick="setOrderFilter('active', this)">Active</div>
+          <div class="order-tab ${currentOrderFilter === 'completed' ? 'active' : ''}" onclick="setOrderFilter('completed', this)">Past / Done</div>
+        </div>
+      `;
+
+      let filteredOrders = orders.filter(order => {
+        if (currentOrderFilter === 'active') return order.status === 'Pending';
+        if (currentOrderFilter === 'completed') return order.status === 'Completed' || order.status === 'Cancelled';
+        return true;
+      });
+
+      if (filteredOrders.length === 0) {
+        bodyEl.innerHTML = tabsHtml + `<div style="text-align:center; color:#777; padding: 20px;">No orders found!</div>`;
+        return;
+      }
+
+      let containerHtml = document.createElement('div');
+      containerHtml.innerHTML = tabsHtml;
+
+      filteredOrders.forEach(order => {
+        let itemsText = order.items.map(i => `${i.name} (x${i.quantity})`).join(', ');
+        let typeLabel = order.orderType ? `[${order.orderType}]` : '[Dine-in]';
+        let rawInfo = order.locationInfo || '';
+        
+        let displayInfoHtml = rawInfo;
+        if (rawInfo.includes('https://')) {
+          let parts = rawInfo.split('https://');
+          let textPart = parts[0];
+          let mapUrl = 'https://' + parts[1].split(' ')[0];
+          displayInfoHtml = `${textPart} <a href="${mapUrl}" target="_blank" style="background:#e3f2fd; color:#1976d2; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:bold; text-decoration:none; display:inline-block; margin-top:2px;">📍 View Location on Map</a>`;
+        }
+
+        let statusBadge = '';
+        let step1Active = 'active', step2Active = '', step3Active = '';
+
+        if (order.status === 'Pending') {
+          if (order.onlinePaymentDone) {
+            statusBadge = `<span style="background:#e8f5e9; color:#2e7d32; padding:3px 6px; border-radius:4px; font-size:9px; font-weight:bold; border:1px solid #c8e6c9;">✅ Payment Verified</span>`;
+          } else {
+            statusBadge = `<span style="background:#fff3cd; color:#856404; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold;">🟡 Pending</span>`;
+          }
+          step1Active = 'active';
+        } else if (order.status === 'Completed') {
+          statusBadge = `<span style="background:#d4edda; color:#155724; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold;">🟢 Completed</span>`;
+          step1Active = 'completed'; step2Active = 'completed'; step3Active = 'active';
+        } else {
+          statusBadge = `<span style="background:#f8d7da; color:#721c24; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold;">🔴 Cancelled</span>`;
+        }
+
+        let card = document.createElement('div');
+        card.style.cssText = "background: #f9f9f9; border: 1px solid #eee; border-radius: 8px; padding: 10px; margin-bottom: 10px;";
+        card.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <span style="font-weight:bold; color:#d32f2f; font-size:12px;">${order.id} ${typeLabel}</span>
+            <div>${statusBadge}</div>
+          </div>
+
+          ${order.status !== 'Cancelled' ? `
+            <div class="progress-steps">
+              <div class="progress-step ${step1Active}">
+                <div class="progress-dot">✓</div>
+                <div>Placed</div>
+              </div>
+              <div class="progress-step ${step2Active}">
+                <div class="progress-dot">✓</div>
+                <div>Preparing</div>
+              </div>
+              <div class="progress-step ${step3Active}">
+                <div class="progress-dot">✓</div>
+                <div>Ready / Done</div>
+              </div>
+            </div>
+            <div style="text-align:center; font-size:10px; color:#d32f2f; font-weight:bold; margin-bottom:6px;">⏱️ Estimated Time: ~30 mins</div>
+          ` : ''}
+
+          <div style="font-size:11px; color:#555; margin-top:4px; word-break: break-all;"><b>Info:</b> ${displayInfoHtml}</div>
+          <div style="font-size:10px; color:#777; margin-bottom:4px;">${order.date}</div>
+          <div style="font-size:11px; color:#444; margin-bottom:6px;"><b>Items:</b> ${itemsText}</div>
+          
+          ${order.receipt ? `
+            <div style="margin-bottom: 6px;">
+              <button style="background: #1976d2; color: white; border: none; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer;" onclick="viewReceipt('${order.receipt}')">📎 View Uploaded Receipt</button>
+            </div>
+          ` : ''}
+
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #eee; padding-top:6px; margin-top:4px;">
+            <span style="font-weight:bold; font-size:12px; color:#2e7d32;">Total: Rs. ${order.total}</span>
+            <div style="display: flex; gap: 5px;">
+              <button style="background: #2e7d32; color: white; border:none; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; cursor: pointer;" onclick="reorder('${order.id}')">🔄 Re-order</button>
+              ${order.status === 'Pending' ? `<button style="background:#dc3545; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;" onclick="cancelOrder('${order.id}')">Cancel</button>` : ''}
+            </div>
+          </div>
+        `;
+        containerHtml.appendChild(card);
+      });
+
+      bodyEl.innerHTML = '';
+      bodyEl.appendChild(containerHtml);
+    }
+
+    function closeOrdersModal() {
+      document.getElementById('ordersModal').style.display = 'none';
+    }
+  </script>
+</body>
+</html>

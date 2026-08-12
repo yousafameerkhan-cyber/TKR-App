@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kitchen Dashboard</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    :root {
+      --primary-red: #ff3a48;
+      --bg-color: #f4f6f8;
+      --card-bg: #ffffff;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg-color);
+      margin: 0;
+      padding: 15px;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .main-content {
+      flex: 1;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #1a1a1a;
+      color: white;
+      padding: 12px 18px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .brand-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .mini-logo {
+      height: 40px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .header h2 { margin: 0; color: #ffffff; font-size: 1.1rem; }
+
+    .status-badge {
+      background: #2ed573;
+      color: #fff;
+      font-size: 0.8rem;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: bold;
+    }
+
+    .grid-container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .order-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      border-left: 6px solid var(--primary-red);
+    }
+
+    .order-card.preparing {
+      border-left-color: #ffa500;
+    }
+
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .table-badge {
+      background: var(--primary-red);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+
+    .status-tag {
+      font-size: 0.85rem;
+      font-weight: bold;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: #eee;
+    }
+
+    .action-btns {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .btn-act {
+      flex: 1;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .btn-prep { background: #ffa500; color: white; }
+    .btn-done { background: #2ed573; color: white; }
+
+    .empty-state { text-align: center; color: #999; margin-top: 40px; }
+
+    footer {
+      text-align: center;
+      padding: 15px 10px;
+      font-size: 0.85rem;
+      color: #666;
+      border-top: 1px solid #ddd;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="main-content">
+    <div class="header">
+      <div class="brand-box">
+        <img src="/logo.png" alt="TKR" class="mini-logo" onerror="this.style.display='none'">
+        <h2>Live Kitchen</h2>
+      </div>
+      <span class="status-badge" id="status">Connecting...</span>
+    </div>
+
+    <div class="grid-container" id="ordersGrid">
+      <div class="empty-state" id="emptyMsg">No active orders right now...</div>
+    </div>
+  </div>
+
+  <footer>
+    Developed with ❤️ by <strong>Hyfal Technologies</strong>. All rights reserved 2026
+  </footer>
+
+  <script>
+    const socket = io();
+
+    function playBeep() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+      } catch (e) {}
+    }
+
+    socket.on('connect', () => {
+      document.getElementById('status').innerText = 'Connected Live ✅';
+    });
+
+    socket.on('load_initial_orders', (orders) => {
+      const grid = document.getElementById('ordersGrid');
+      grid.innerHTML = '';
+      if (orders.length === 0) {
+        grid.innerHTML = '<div class="empty-state" id="emptyMsg">No active orders right now...</div>';
+        return;
+      }
+      orders.forEach(order => renderOrderCard(order));
+    });
+
+    socket.on('notification_received', (order) => {
+      const emptyMsg = document.getElementById('emptyMsg');
+      if (emptyMsg) emptyMsg.remove();
+      playBeep();
+      renderOrderCard(order, true);
+    });
+
+    socket.on('order_status_updated', (data) => {
+      const card = document.getElementById(`order-${data.id}`);
+      if (!card) return;
+      if (data.status === 'Served') {
+        card.remove();
+      } else {
+        card.classList.add('preparing');
+        card.querySelector('.status-tag').innerText = 'Cooking 🔥';
+      }
+    });
+
+    function renderOrderCard(data, prepend = false) {
+      const grid = document.getElementById('ordersGrid');
+      const card = document.createElement('div');
+      card.id = `order-${data.id}`;
+      card.className = `order-card ${data.status === 'Preparing' ? 'preparing' : ''}`;
+      
+      const detailsText = data.items || data.message || 'No details';
+
+      card.innerHTML = `
+        <div class="order-header">
+          <span class="table-badge">Table ${data.tableNo}</span>
+          <span class="status-tag">${data.status === 'Preparing' ? 'Cooking 🔥' : 'Pending ⏳'}</span>
+        </div>
+        <div><strong>Details:</strong> ${detailsText}</div>
+        <div class="action-btns">
+          <button class="btn-act btn-prep" onclick="updateStatus(${data.id}, 'Preparing')">Cooking 🔥</button>
+          <button class="btn-act btn-done" onclick="updateStatus(${data.id}, 'Served')">Serve ✅</button>
+        </div>
+      `;
+
+      if (prepend) grid.prepend(card);
+      else grid.appendChild(card);
+    }
+
+    function updateStatus(id, status) {
+      socket.emit('update_order_status', { id, status });
+    }
+  </script>
+</body>
+</html>

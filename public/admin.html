@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TKR Restaurant - Admin Dashboard</title>
+    <style>
+        body { background: #f8f9fa; font-family: sans-serif; margin: 0; padding: 15px; }
+        .header { display: flex; align-items: center; background: #c82333; color: white; padding: 12px 15px; border-radius: 8px; justify-content: space-between; }
+        .header-left { display: flex; align-items: center; gap: 10px; }
+        .header-logo { width: 36px; height: 36px; border-radius: 6px; background: white; object-fit: cover; padding: 2px; }
+        .header h2 { font-size: 18px; margin: 0; }
+        .header span { font-size: 12px; opacity: 0.9; }
+
+        /* Stats Counter Bar */
+        .stats-container { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 15px 0; }
+        .stat-box { background: white; padding: 10px 5px; text-align: center; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .stat-box h4 { margin: 0; font-size: 11px; color: #666; }
+        .stat-box p { margin: 5px 0 0 0; font-size: 16px; font-weight: bold; color: #c82333; }
+
+        .orders-container { margin-top: 15px; }
+        .order-card { background: white; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-left: 5px solid #c82333; }
+        .order-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 8px; font-size: 15px; }
+        .order-details { margin-bottom: 10px; font-size: 13px; color: #444; line-height: 1.5; }
+        
+        .btn { padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; color: white; font-weight: bold; font-size: 11px; margin-right: 4px; margin-top: 5px; }
+        .btn-prepare { background: #ffc107; color: #000; }
+        .btn-complete { background: #28a745; }
+        .btn-cancel { background: #dc3545; }
+        .btn-pay-received { background: #17a2b8; }
+        .btn-pay-not { background: #6c757d; }
+        .btn-download { background: #007bff; text-decoration: none; display: inline-block; padding: 6px 12px; border-radius: 4px; color: white; font-size: 11px; font-weight: bold; margin-top: 5px; }
+
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; color: white; }
+        .status-pending { background: #dc3545; }
+        .status-preparing { background: #ffc107; color: #000; }
+        .status-ready-done, .status-completed { background: #28a745; }
+        .status-cancelled { background: #6c757d; }
+        
+        .payment-verified { background: #e2f0d9; color: #385723; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .payment-pending { background: #fff3cd; color: #856404; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        
+        .receipt-box { margin-top: 6px; background: #f1f3f5; padding: 8px; border-radius: 6px; display: flex; align-items: center; justify-content: space-between; font-size: 12px; }
+        .receipt-link { color: #007bff; text-decoration: none; font-weight: bold; cursor: pointer; }
+        .receipt-link:hover { text-decoration: underline; }
+
+        .action-group { margin-top: 8px; border-top: 1px dashed #eee; padding-top: 8px; }
+
+        /* Modal Viewer */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 15px; border-radius: 8px; max-width: 90%; text-align: center; position: relative; }
+        .modal-content img { max-width: 100%; max-height: 60vh; border-radius: 4px; border: 1px solid #ddd; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto; }
+        .close-btn { background: #c82333; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <img src="logo.png" alt="TKR Logo" class="header-logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'36\' height=\'36\'><rect width=\'36\' height=\'36\' fill=\'%23c82333\'/><text x=\'50%\' y=\'55%\' font-size=\'14\' fill=\'white\' text-anchor=\'middle\' dominant-baseline=\'middle\' font-weight=\'bold\'>TKR</text></svg>'">
+            <div>
+                <h2>TKR Admin Panel</h2>
+                <span>Live Orders</span>
+            </div>
+        </div>
+        <span style="font-size: 11px;">Management</span>
+    </div>
+
+    <!-- Statistics Counters -->
+    <div class="stats-container" id="statsContainer">
+        <div class="stat-box"><h4>Total</h4><p id="statTotal">0</p></div>
+        <div class="stat-box"><h4>Pending</h4><p id="statPending">0</p></div>
+        <div class="stat-box"><h4>Preparing</h4><p id="statPreparing">0</p></div>
+        <div class="stat-box"><h4>Ready</h4><p id="statReady">0</p></div>
+        <div class="stat-box"><h4>Cancelled</h4><p id="statCancelled">0</p></div>
+    </div>
+
+    <div class="orders-container" id="adminOrders">
+        <p>Loading orders...</p>
+    </div>
+
+    <!-- Modal for Image Preview & Download -->
+    <div id="imageModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle" style="margin-top:0; font-size:15px; color:#333;">Payment Receipt</h3>
+            <!-- SVG placeholder sample representing the receipt image clearly -->
+            <img id="modalImg" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='200' fill='%23eee'><rect width='300' height='200'/><text x='50%' y='50%' font-size='16' fill='%23333' text-anchor='middle' dominant-baseline='middle'>TKR Payment Receipt</text></svg>" alt="Receipt Image">
+            <div style="display: flex; justify-content: center; gap: 10px; margin-top: 5px;">
+                <a id="downloadBtn" href="#" download="Receipt.jpg" class="btn-download">Download Receipt</a>
+                <button class="close-btn" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <footer style="text-align: center; padding: 15px; font-size: 12px; color: #666; margin-top: 20px; border-top: 1px solid #eee;">
+        Developed with ❤️ by Hyfal Technologies ®© 2026
+    </footer>
+
+    <script>
+        async function fetchOrders() {
+            try {
+                const response = await fetch('/api/orders');
+                const orders = await response.json();
+                
+                document.getElementById('statTotal').innerText = orders.length;
+                document.getElementById('statPending').innerText = orders.filter(o => o.status === 'Pending').length;
+                document.getElementById('statPreparing').innerText = orders.filter(o => o.status === 'Preparing').length;
+                document.getElementById('statReady').innerText = orders.filter(o => o.status === 'Ready / Done').length;
+                document.getElementById('statCancelled').innerText = orders.filter(o => o.status === 'Cancelled').length;
+
+                const container = document.getElementById('adminOrders');
+                
+                if (orders.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; color:#666;">No active orders found.</p>';
+                    return;
+                }
+
+                container.innerHTML = orders.map(order => {
+                    const isVerified = order.paymentStatus === 'Payment Verified';
+                    const paymentBadgeClass = isVerified ? 'payment-verified' : 'payment-pending';
+                    
+                    let receiptHtml = '';
+                    if (order.paymentImage) {
+                        receiptHtml = `
+                            <div class="receipt-box">
+                                <span>🧾 Receipt: <strong>${order.paymentImage}</strong></span>
+                                <span class="receipt-link" onclick="openModal('${order.paymentImage}')">View & Download</span>
+                            </div>
+                        `;
+                    }
+                    
+                    return `
+                        <div class="order-card">
+                            <div class="order-header">
+                                <span>${order.id} [${order.type}]</span>
+                                <span class="badge status-${order.status.toLowerCase().replace(/[\s/]+/g, '-')}">${order.status}</span>
+                            </div>
+                            <div class="order-details">
+                                <p><strong>Time:</strong> ${order.time}</p>
+                                <p><strong>Info:</strong> ${order.info}</p>
+                                <p><strong>Items:</strong> ${order.items}</p>
+                                <p><strong>Total:</strong> Rs. ${order.total} &nbsp;&nbsp; <span class="${paymentBadgeClass}">${order.paymentStatus}</span></p>
+                                ${receiptHtml}
+                            </div>
+                            
+                            <div class="action-group">
+                                <span style="font-size: 11px; font-weight: bold; color: #555;">Payment Verification:</span><br>
+                                <button class="btn btn-pay-received" onclick="updatePayment('${order.id}', 'Payment Verified')">✓ Payment Received</button>
+                                <button class="btn btn-pay-not" onclick="updatePayment('${order.id}', 'Payment Not Received')">✕ Not Received</button>
+                            </div>
+
+                            <div class="action-group" style="margin-top: 5px;">
+                                <span style="font-size: 11px; font-weight: bold; color: #555;">Order Status:</span><br>
+                                <button class="btn btn-prepare" onclick="updateStatus('${order.id}', 'Preparing')">Preparing</button>
+                                <button class="btn btn-complete" onclick="updateStatus('${order.id}', 'Ready / Done')">Ready / Done</button>
+                                <button class="btn btn-cancel" onclick="updateStatus('${order.id}', 'Cancelled')">Cancel</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                document.getElementById('adminOrders').innerHTML = '<p style="text-align:center; color:red;">Failed to load orders.</p>';
+            }
+        }
+
+        function openModal(imageName) {
+            const modal = document.getElementById('imageModal');
+            document.getElementById('modalTitle').innerText = 'Receipt: ' + imageName;
+            const downloadBtn = document.getElementById('downloadBtn');
+            downloadBtn.setAttribute('download', imageName);
+            downloadBtn.href = 'data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'300\' height=\'200\' fill=\'%23eee\'><rect width=\'300\' height=\'200\'/><text x=\'50%\' y=\'50%\' font-size=\'14\' fill=\'%23333\' text-anchor=\'middle\' dominant-baseline=\'middle\'>Receipt: ' + imageName + '</text></svg>';
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+
+        async function updateStatus(id, status) {
+            try {
+                const res = await fetch(`/api/orders/${id}/status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                });
+                const data = await res.json();
+                if (data.success) fetchOrders();
+            } catch (err) { alert('Error updating status'); }
+        }
+
+        async function updatePayment(id, paymentStatus) {
+            try {
+                const res = await fetch(`/api/orders/${id}/payment`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ paymentStatus })
+                });
+                const data = await res.json();
+                if (data.success) fetchOrders();
+            } catch (err) { alert('Error updating payment status'); }
+        }
+
+        fetchOrders();
+        setInterval(fetchOrders, 5000);
+    </script>
+</body>
+</html>

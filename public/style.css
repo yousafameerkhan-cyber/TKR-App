@@ -1,0 +1,5 @@
+.brand-logo {
+    height: 40px; /* Logo ki height adjustment */
+    width: auto;
+    object-fit: contain;
+}

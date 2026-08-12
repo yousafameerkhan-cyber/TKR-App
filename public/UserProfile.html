@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TKR Restaurant - User Profile</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 0; padding-bottom: 40px; }
+    .top-header { background: #d32f2f; color: white; padding: 15px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .brand-section h2 { margin: 0; font-size: 18px; }
+    .header-btns { display: flex; gap: 8px; }
+    .back-btn, .logout-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 12px; cursor: pointer; text-decoration: none; }
+    .logout-btn { background: #b71c1c; border: none; }
+    
+    .container { padding: 15px; max-width: 600px; margin: auto; }
+    .profile-card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); text-align: center; }
+    
+    /* Profile Picture */
+    .avatar-container { position: relative; width: 90px; height: 90px; margin: 0 auto 15px auto; }
+    .avatar { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 3px solid #d32f2f; background: #ddd; }
+    .upload-label { position: absolute; bottom: 0; right: 0; background: #d32f2f; color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; border: 2px solid white; }
+    
+    .section-title { font-size: 15px; font-weight: bold; margin-bottom: 10px; color: #333; text-align: left; border-bottom: 2px solid #f0f0f0; padding-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
+    .info-group { text-align: left; font-size: 13px; margin: 10px 0; color: #555; display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f9f9f9; }
+    .info-group b { color: #333; }
+    
+    .form-input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 13px; outline: none; }
+    .form-input:disabled { background: #f0f0f0; color: #777; cursor: not-allowed; }
+    
+    .action-btn { background: #d32f2f; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: bold; width: 100%; cursor: pointer; font-size: 13px; margin-top: 5px; }
+    .secondary-btn { background: #555; margin-top: 5px; }
+    .request-btn { background: #ff9800; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; font-weight: bold; }
+    
+    .history-item { background: #fafafa; border: 1px solid #eee; padding: 10px; border-radius: 8px; margin-bottom: 8px; text-align: left; font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .edit-section { display: none; margin-top: 10px; text-align: left; }
+  </style>
+</head>
+<body>
+
+  <div class="top-header">
+    <div class="brand-section">
+      <h2>User Dashboard</h2>
+    </div>
+    <div class="header-btns">
+      <a href="/customer.html" class="back-btn">Menu</a>
+      <button class="logout-btn" onclick="logoutUser()">Logout</button>
+    </div>
+  </div>
+
+  <div class="container">
+    
+    <!-- Profile Card & Image -->
+    <div class="profile-card">
+      <div class="avatar-container">
+        <img id="userAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" class="avatar" alt="Profile">
+        <label for="fileInput" class="upload-label">+</label>
+        <input type="file" id="fileInput" style="display: none;" accept="image/*" onchange="handleImageUpload(event)">
+      </div>
+      <h3 id="profileName" style="margin: 0 0 5px 0; color: #333;">-</h3>
+      <p id="profileEmail" style="margin: 0; font-size: 12px; color: #777;">-</p>
+    </div>
+
+    <!-- Personal Info Section -->
+    <div class="profile-card">
+      <div class="section-title">
+        <span>👤 Personal Information</span>
+        <button style="background:none; border:none; color:#d32f2f; cursor:pointer; font-weight:bold; font-size:12px;" onclick="toggleEditMode()">Edit Profile</button>
+      </div>
+      
+      <!-- Display Mode -->
+      <div id="viewInfoMode">
+        <div class="info-group"><span>Full Name:</span> <b id="valName">-</b></div>
+        <div class="info-group">
+          <span>Email Address:</span> 
+          <div><b id="valEmail">-</b> <button class="request-btn" id="reqEmailBtn" onclick="requestChange('email')">Request Change</button></div>
+        </div>
+        <div class="info-group">
+          <span>WhatsApp Number:</span> 
+          <div><b id="valWhatsapp">-</b> <button class="request-btn" id="reqWaBtn" onclick="requestChange('whatsapp')">Request Change</button></div>
+        </div>
+        <div class="info-group"><span>Date of Birth:</span> <b id="valDob">-</b></div>
+      </div>
+
+      <!-- Edit Mode Form -->
+      <div id="editInfoMode" class="edit-section">
+        <label style="font-size:11px; color:#666;">Full Name</label>
+        <input type="text" id="editName" class="form-input">
+        
+        <label style="font-size:11px; color:#666;">Email Address <span id="emailLockNotice" style="color:red; font-size:10px;">(Locked)</span></label>
+        <input type="text" id="editEmail" class="form-input" disabled>
+        
+        <label style="font-size:11px; color:#666;">WhatsApp Number <span id="waLockNotice" style="color:red; font-size:10px;">(Locked)</span></label>
+        <input type="text" id="editWhatsapp" class="form-input" disabled>
+        
+        <label style="font-size:11px; color:#666;">Date of Birth</label>
+        <input type="date" id="editDob" class="form-input">
+        
+        <button class="action-btn" onclick="savePersonalProfile()">Update Profile</button>
+        <button class="action-btn secondary-btn" onclick="toggleEditMode()">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Payment / Bank Card Section -->
+    <div class="profile-card">
+      <div class="section-title">💳 Payment & Bank Details</div>
+      <input type="text" id="bankName" class="form-input" placeholder="Bank Name / Wallet (e.g. HBL / Bank Al Habib)">
+      <input type="text" id="accountNumber" class="form-input" placeholder="Account Number / IBAN">
+      <button class="action-btn" onclick="savePaymentInfo()">Save Payment Method</button>
+      <div id="savedPayment" style="text-align: left; font-size: 12px; margin-top: 10px; color: #2e7d32; font-weight: bold;"></div>
+    </div>
+
+    <!-- Order History Section -->
+    <div class="profile-card">
+      <div class="section-title">📦 Order History</div>
+      <div id="orderHistoryList">
+        <p style="font-size: 12px; color: #777; text-align: center;">No order history found.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    window.onload = function() {
+      // Session Guard: Check if user is logged in
+      let user = localStorage.getItem('tkr_user');
+      if (!user) {
+        alert('Please login first to view your dashboard.');
+        window.location.href = '/customer.html';
+        return;
+      }
+      
+      loadUserData();
+      loadOrderHistory();
+    }
+
+    function getStoredUser() {
+      let user = localStorage.getItem('tkr_user');
+      return user ? JSON.parse(user) : null;
+    }
+
+    function loadUserData() {
+      let data = getStoredUser();
+      if (!data) return;
+      
+      document.getElementById('profileName').innerText = data.name || 'User';
+      document.getElementById('profileEmail').innerText = data.email || 'No email';
+      
+      document.getElementById('valName').innerText = data.name || '-';
+      document.getElementById('valEmail').innerText = data.email || '-';
+      document.getElementById('valWhatsapp').innerText = data.whatsapp || '-';
+      document.getElementById('valDob').innerText = data.dob || '-';
+
+      // Set edit inputs values
+      document.getElementById('editName').value = data.name || '';
+      document.getElementById('editEmail').value = data.email || '';
+      document.getElementById('editWhatsapp').value = data.whatsapp || '';
+      document.getElementById('editDob').value = data.dob || '';
+
+      // Check approval state for editing restricted fields
+      if (data.editApproved) {
+        if (data.editApproved.email) {
+          document.getElementById('editEmail').disabled = false;
+          document.getElementById('emailLockNotice').innerText = "(Unlocked)";
+          document.getElementById('emailLockNotice').style.color = "green";
+          document.getElementById('reqEmailBtn').style.display = "none";
+        }
+        if (data.editApproved.whatsapp) {
+          document.getElementById('editWhatsapp').disabled = false;
+          document.getElementById('waLockNotice').innerText = "(Unlocked)";
+          document.getElementById('waLockNotice').style.color = "green";
+          document.getElementById('reqWaBtn').style.display = "none";
+        }
+      }
+
+      if (data.avatar) {
+        document.getElementById('userAvatar').src = data.avatar;
+      }
+
+      if (data.payment) {
+        document.getElementById('bankName').value = data.payment.bank || '';
+        document.getElementById('accountNumber').value = data.payment.acc || '';
+        document.getElementById('savedPayment').innerText = `Saved: ${data.payment.bank} (${data.payment.acc})`;
+      }
+    }
+
+    function toggleEditMode() {
+      let viewMode = document.getElementById('viewInfoMode');
+      let editMode = document.getElementById('editInfoMode');
+      if (viewMode.style.display === 'none') {
+        viewMode.style.display = 'block';
+        editMode.style.display = 'none';
+      } else {
+        viewMode.style.display = 'none';
+        editMode.style.display = 'block';
+      }
+    }
+
+    function requestChange(field) {
+      let fieldName = field === 'email' ? 'Email Address' : 'WhatsApp Number';
+      alert(`Request sent to Admin to change your ${fieldName}. Approved for testing!`);
+      
+      let user = getStoredUser();
+      if (!user.editApproved) user.editApproved = {};
+      user.editApproved[field] = true;
+      localStorage.setItem('tkr_user', JSON.stringify(user));
+      
+      loadUserData();
+    }
+
+    function savePersonalProfile() {
+      let name = document.getElementById('editName').value.trim();
+      let email = document.getElementById('editEmail').value.trim();
+      let whatsapp = document.getElementById('editWhatsapp').value.trim();
+      let dob = document.getElementById('editDob').value.trim();
+
+      if (!name || !dob) {
+        alert('Name and Date of Birth are required.');
+        return;
+      }
+
+      let user = getStoredUser();
+      
+      if (user.editApproved && user.editApproved.whatsapp) {
+        let waRegex = /^03\d{9}$/;
+        if (!waRegex.test(whatsapp)) {
+          alert('Invalid WhatsApp number! Must be 11 digits and start with 03.');
+          return;
+        }
+        user.whatsapp = whatsapp;
+        user.editApproved.whatsapp = false;
+      }
+
+      if (user.editApproved && user.editApproved.email) {
+        user.email = email;
+        user.editApproved.email = false;
+      }
+
+      user.name = name;
+      user.dob = dob;
+      
+      localStorage.setItem('tkr_user', JSON.stringify(user));
+
+      loadUserData();
+      toggleEditMode();
+      alert('Profile updated successfully!');
+    }
+
+    function handleImageUpload(event) {
+      let file = event.target.files[0];
+      if (file) {
+        let reader = new FileReader();
+        reader.onload = function(e) {
+          let base64Image = e.target.result;
+          document.getElementById('userAvatar').src = base64Image;
+          
+          let user = getStoredUser();
+          if (user) {
+            user.avatar = base64Image;
+            localStorage.setItem('tkr_user', JSON.stringify(user));
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function savePaymentInfo() {
+      let bank = document.getElementById('bankName').value.trim();
+      let acc = document.getElementById('accountNumber').value.trim();
+
+      if (!bank || !acc) {
+        alert('Please fill in both Bank/Wallet name and Account Number.');
+        return;
+      }
+
+      let user = getStoredUser();
+      user.payment = { bank, acc };
+      localStorage.setItem('tkr_user', JSON.stringify(user));
+
+      document.getElementById('savedPayment').innerText = `Saved: ${bank} (${acc})`;
+      alert('Payment details saved successfully!');
+    }
+
+    function loadOrderHistory() {
+      let orders = JSON.parse(localStorage.getItem('tkr_orders') || '[]');
+      let container = document.getElementById('orderHistoryList');
+      
+      if (orders.length === 0) {
+        container.innerHTML = `<div class="history-item"><span><b>Sample Order</b><br><small>Table 01 - Rs. 1800</small></span><span style="color: #2e7d32; font-weight: bold;">Completed</span></div>`;
+        return;
+      }
+
+      container.innerHTML = '';
+      orders.forEach(order => {
+        container.innerHTML += `
+          <div class="history-item">
+            <span><b>Order #${order.id || '101'}</b><br><small>${order.items || 'Food Items'} - Rs. ${order.total || 0}</small></span>
+            <span style="color: #2e7d32; font-weight: bold;">${order.status || 'Completed'}</span>
+          </div>
+        `;
+      });
+    }
+
+    function logoutUser() {
+      if (confirm('Are you sure you want to logout?')) {
+        localStorage.removeItem('tkr_user');
+        localStorage.removeItem('tkr_cart');
+        window.location.href = '/customer.html';
+      }
+    }
+  </script>
+</body>
+</html>
