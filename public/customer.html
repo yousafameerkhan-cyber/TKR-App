@@ -1,3 +1,7 @@
+cat << 'EOF' > public/customer.html
+
+
+Cat << 'EOF' > public/customer.html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -499,14 +503,17 @@
     }
 
     function callWaiter() {
-      let table = localStorage.getItem('tkr_table') || prompt("Please select your Table number (e.g. Table 01):", "Table 01");
-      if (!table) {
-        showToast("Table selection is mandatory!", "error");
-        return;
+      let savedTable = localStorage.getItem('tkr_table') || 'Table 01';
+      let table = prompt("Please enter your Table number (e.g., Table 01, 3, VIP-1):", savedTable);
+      
+      if (table !== null && table.trim() !== "") {
+        let cleanTable = table.trim();
+        localStorage.setItem('tkr_table', cleanTable);
+        socket.emit('callWaiter', { table: cleanTable });
+        showToast(`Waiter called for ${cleanTable}!`, 'success');
+      } else if (table !== null) {
+        showToast("Table number cannot be empty!", "error");
       }
-      localStorage.setItem('tkr_table', table);
-      socket.emit('callWaiter', { table: table });
-      showToast(`Waiter called for ${table}!`, 'success');
     }
 
     function toggleOrderFields() {
