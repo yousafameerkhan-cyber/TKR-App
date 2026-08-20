@@ -1,14 +1,10 @@
-cat << 'EOF' > public/customer.html
-
-
-Cat << 'EOF' > public/customer.html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TKR Restaurant - Menu</title>
-  
+
   <!-- PWA Manifest & Theme Color -->
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#d32f2f">
@@ -190,7 +186,7 @@ Cat << 'EOF' > public/customer.html
       <div class="cat-chip" onclick="filterCategory('karahi', this)">🔥 Karahi</div>
       <div class="cat-chip" onclick="filterCategory('bbq', this)">🍢 BBQ</div>
       <div class="cat-chip" onclick="filterCategory('rice', this)">🍛 Rice, Pulao & Biryani</div>
-      <div class="cat-chip" onclick="filterCategory('beverage', this)">🥤 Beverages</div>
+      <div class="cat-chip" onclick="filterCategory('beverage', this)"> 🥤 Beverages</div>
       <div class="cat-chip" onclick="filterCategory('dessert', this)">🍨 Ice Cream</div>
     </div>
 
@@ -505,7 +501,7 @@ Cat << 'EOF' > public/customer.html
     function callWaiter() {
       let savedTable = localStorage.getItem('tkr_table') || 'Table 01';
       let table = prompt("Please enter your Table number (e.g., Table 01, 3, VIP-1):", savedTable);
-      
+
       if (table !== null && table.trim() !== "") {
         let cleanTable = table.trim();
         localStorage.setItem('tkr_table', cleanTable);
@@ -817,10 +813,10 @@ Cat << 'EOF' > public/customer.html
           }
           step1Active = 'active';
         } else if (order.status === 'Completed') {
-          statusBadge = `<span style="background:#d4edda; color:#155724; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold;">🟢 Completed</span>`;
+          statusBadge = `<span style="background:#d4edda; color:#155724; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold;"> 🟢 Completed</span>`;
           step1Active = 'completed'; step2Active = 'completed'; step3Active = 'active';
         } else {
-          statusBadge = `<span style="background:#f8d7da; color:#721c24; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold;">🔴 Cancelled</span>`;
+          statusBadge = `<span style="background:#f8d7da; color:#721c24; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold;"> 🔴 Cancelled</span>`;
         }
 
         let card = document.createElement('div');
